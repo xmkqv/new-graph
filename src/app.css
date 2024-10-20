@@ -2,19 +2,378 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 
+# glossary
+
+- pseudo-elements: a keyword added to a selector that lets you style a specific part of the selected element(s)
+- single colon (:) vs double colon (::): The double colon (::) notation is used in CSS3 to denote pseudo-elements, whereas the single colon (:) is used for pseudo-classes. The ::placeholder is a pseudo-element that styles the placeholder text of an input or textarea.
+- position
+    - static: normal flow
+    - relative: normal flow + offset relative to self
+    - absolute: removed from normal flow + offset relative to containing block
+    - fixed: removed from normal flow + offset relative to containing block = viewport
+
+- containing block
+    - position = static, relative, or sticky: nearest parent
+    - position = absolute: nearest parent element with position != static
+    - position = fixed: viewport
+
+- *: select all elements
+- *::before: select all pseudo-elements before the element
+- *::after: select all pseudo-elements after the element
+- size-full: width: 100%; height: 100%;
+
+# discussion
+
+## how to write a theme using best practices
+- define a clear and consistent color palette
+
+## clicks
+- e.detail === 1: if we filter by e.detail === 1,
+- double clicks are ignored & it feels less responsive
+
+# todo
+
+ - [ ] what property does this correcspond to? 
+ X and Y offsets relative to the element, blur and spread radius, and color 
+
+# requirements
+- keep everything in one file
+*/
+
 :root {
-  --background-rgb: 214, 219, 220;
-  --foreground-rgb: 0, 0, 0;
+    /* palette */
+    --primary-bg: #f7f7f7;
+    --secondary-bg: #e8e8e8;
+    --tertiary-background-color: #ababab;
+
+    --accent-color: #2cb67d;
+
+    --placeholder-color: #9a9a9a;
+
+    /* typography */
+    --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+    --font-size: 16px;
+    --line-height: 1.5;
+    --indent: 5px;
+
+    /* borders */
+    --thick-border: rgba(12, 37, 51, 0.429) 2px solid;
+    --thin-border: rgba(25, 72, 100, 0.173) 1px solid;
+
+    /* layout */
+    --qx-bar-width: 400px;
+    --qx-bar-height: 100px;
+    --qx-dot-width: 20px;
+    --corner-radius: 5px;
+    --tile-padding: 2px;
+
+    /* dynamic variables */
+    /* animation ux for click and hold */
+    --holding: 0;
+    /* modifiers: per tile styling */
+    --border-color-modifier: #747474a0;
 }
 
+/* theme */
+/* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background-rgb: 0, 0, 0;
-    --foreground-rgb: 255, 255, 255;
-  }
+    :root {
+        --primary-dark-bg: #1e1e1e;
+        --secondary-dark-bg: #2a2a2a;
+        --text-color: #ffffff;
+        --border-color: #333;
+    }
 }
 
-body {
-  background: rgb(var(--background-rgb));
-  color: rgb(var(--foreground-rgb));
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+    :root {
+        --primary-bg: #f0f0f0;
+        --secondary-bg: #e0e0e0;
+        --text-color: #333333;
+        --border-color: #ccc;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    font-family: var(--font-primary);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+}
+
+.corners {
+    border-top-right-radius: var(--corner-radius);
+    border-bottom-left-radius: var(--corner-radius);
+}
+
+.text {
+    padding: 10px;
+    min-height: 2rem;
+}
+
+.contenteditable {
+    @apply size-full;
+    @apply text;
+    @apply break-words;
+    @apply whitespace-pre-wrap;
+
+    min-height: inherit;
+    max-height: inherit;
+
+    overflow-y: scroll;
+
+    background-color: var(--secondary-bg);
+    border: inherit;
+    border-radius: inherit;
+
+    outline: none;
+    resize: none;
+    cursor: pointer;
+    /* 
+    cursors: [ auto | default | none | context-menu | help | pointer | progress | wait | cell | crosshair | text | vertical-text | alias | copy | move | no-drop | not-allowed | e-resize | n-resize | ne-resize | nw-resize | s-resize | se-resize | sw-resize | w-resize | ew-resize | ns-resize | nesw-resize | nwse-resize | col-resize | row-resize | all-scroll | zoom-in | zoom-out | grab | grabbing ] 
+    */
+}
+
+.contenteditable::placeholder {
+    color: var(--placeholder-color);
+}
+
+textarea {
+    @apply contenteditable;
+}
+
+.flux-container {
+    position: absolute;
+}
+
+.flux {
+    @apply corners;
+    @apply size-full;
+
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+
+    padding: 10px;
+
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 4px 4px;
+}
+
+.tile {
+    @apply corners;
+
+    /* required for qx positioning */
+    position: relative;
+    max-height: 300px;
+    background-color: var(--primary-bg);
+
+    margin-top: var(--tile-padding);
+    margin-bottom: var(--tile-padding);
+}
+
+.flow {
+    position: absolute;
+}
+
+.tree {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.tile:hover {
+    box-shadow: rgba(0, 0, 0, 0.231) 0px 0px 3px 3px;
+}
+
+.tabs {
+    @apply size-full;
+    display: flex;
+    border-bottom-color: 1px solid var(--border-color-modifier);
+}
+
+/* .qx {
+    z-index: 1;
+
+    position: relative;
+
+    height: 0%;
+    width: 100%;
+    left: 50%;
+} */
+
+.qx {
+    z-index: 1;
+    /* absolute = to nearest relative position element */
+    position: absolute;
+    height: 0%;
+    width: 100%;
+    left: 50%;
+}
+
+.qx-bar {
+    position: absolute;
+    transform: translateX(-50%);
+
+    background-color: var(--tertiary-background-color);
+    border-bottom-left-radius: var(--corner-radius);
+    border-bottom-right-radius: var(--corner-radius);
+    border: var(--thick-border);
+    border-top: var(--thin-border);
+    box-shadow: #ffffff 0px 2px 5px 2px;
+    /* adapt to the tile size, within bounds */
+
+    min-height: 100px;
+    max-height: 200px;
+    width: 80%;
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.qx-dot {
+    position: absolute;
+    left: calc(-1 * var(--qx-dot-width) / 2);
+    bottom: calc(-1 * var(--qx-dot-width) / 2);
+
+    border-radius: 50%;
+    cursor: pointer;
+    width: var(--qx-dot-width);
+    height: var(--qx-dot-width);
+
+    /* click and hold */
+    opacity: calc(1 - var(--holding, 0));
+
+    animation: dynamic-rainbow 20s infinite;
+    box-shadow: 0px 0px 2px #121f39;
+    background: #f0f2f0; /* fallback for old browsers */
+    background: -webkit-linear-gradient(
+        to right,
+        #000c40,
+        #f0f2f0
+    ); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(
+        to right,
+        #000c40,
+        #f0f2f0
+    ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+/*
+# gradient animations
+- background-size + background-position -> move around a scaled background
+- both values are required
+*/
+
+.qx-dot:hover {
+    animation-play-state: paused;
+}
+
+@keyframes dynamic-rainbow {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(360deg);
+    }
+    100% {
+        transform: rotate(720deg);
+    }
+}
+
+/* Back button styling */
+.back-button {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* transform: translateX(-100%); */
+    height: var(--qx-bar-height);
+    background-color: var(--primary-dark-bg);
+    cursor: pointer;
+    /* width: 30px; */
+    width: 30px;
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: var(--secondary-dark-bg);
+}
+
+/* Back arrow icon */
+.back-arrow {
+    color: var(--accent-color);
+}
+
+/* Menu grid styles */
+.menu-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    /* Spacing between items */
+    gap: 10px;
+    /* Padding for the grid */
+    padding: 10px;
+    min-width: var(--qx-bar-width);
+    min-height: var(--qx-bar-height);
+    background-color: var(--primary-dark-bg);
+    border-top-right-radius: var(--corner-radius);
+    border-bottom-right-radius: var(--corner-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure child items do not shrink and maintain their width */
+.menu-grid > .control,
+.menu-grid > .button,
+.menu-grid > .selection {
+    flex: 0 0 auto; /* Prevents items from shrinking */
+}
+
+.control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+    color: var(--text-color);
+    font-family: "Roboto", sans-serif;
+}
+
+/* Icon inside control */
+.control .icon {
+    width: calc(0.5 * var(--qx-bar-height));
+    height: calc(0.5 * var(--qx-bar-height));
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+.button,
+.selection {
+    background-color: var(--primary-dark-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    width: min(calc(0.9 * var(--qx-bar-height)), 60px);
+    height: min(calc(0.9 * var(--qx-bar-height)), 60px);
+    margin-top: auto;
+    margin-bottom: auto;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+}
+
+.button:hover,
+.selection:hover {
+    background-color: var(--secondary-dark-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Accessibility: Focus states */
+.button:focus,
+.selection:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
