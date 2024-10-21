@@ -9,25 +9,18 @@ export default function Home() {
                 Hello world!
             </h1>
             <Counter />
-            <p class="mt-8">
-                Visit{" "}
-                <a
-                    href="https://solidjs.com"
-                    target="_blank"
-                    class="text-sky-600 hover:underline"
-                >
-                    solidjs.com
-                </a>{" "}
-                to learn how to build Solid apps.
-            </p>
+
             <p class="my-4">
                 <span>Home</span>
                 {" - "}
                 <A href="/about" class="text-sky-600 hover:underline">
-                    About Page
+                    About
                 </A>{" "}
                 <A href="/qx" class="text-sky-600 hover:underline">
                     qx
+                </A>
+                <A href="/beadExample" class="text-sky-600 hover:underline">
+                    Bead
                 </A>
             </p>
         </main>

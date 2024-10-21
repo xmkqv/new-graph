@@ -168,9 +168,9 @@ type Query = {
     - nodes + links
 */
 
-interface Node<T extends NodeType> {
+interface Node {
     id: string;
-    type: T;
+    type: NodeType;
     data: string;
     name: string;
     author: string;
@@ -190,11 +190,11 @@ interface Node<T extends NodeType> {
     links: Link<LinkType>[];
 }
 
-type Update = PartialExcept<Node<NodeType>, "id"> & {};
+type Update = PartialExcept<Node, "id"> & {};
 
 type Flow = {
     nodeIds: string[];
-    // waves: Wave<NodeType>[];
+    // waves: Wave[];
     // links: Link[];
     layout: LayoutType;
     w: number;
@@ -217,7 +217,7 @@ use a portal to render the nodes
 </Portal>
 */
 
-const [nodes, setNodes] = createStore<Node<NodeType>[]>([]);
+const [nodes, setNodes] = createStore<Node[]>([]);
 
 const nodeIds = createMemo(() => nodes.map((node) => node.id));
 const nNode = createMemo(() => nodes.length);
@@ -233,7 +233,7 @@ const pickRndNode = () => {
     throw new Error("node not found");
 };
 
-const addNode = (node: Node<NodeType>) =>
+const addNode = (node: Node) =>
     setNodes((prev) => {
         if (prev.find((n) => n.id === node.id)) return prev;
         return [...prev, node];
@@ -307,8 +307,9 @@ function _newNodeDefaults() {
 
     const name = Math.random().toString(36).substring(7);
     const author = ["user", "assistant"][rndInt(0, 1)];
-    const x = Math.floor(Math.random() * 1000);
-    const y = Math.floor(Math.random() * 1000);
+    const x = Math.floor(Math.random() * window.innerWidth);
+    const y = Math.floor(Math.random() * window.innerHeight);
+
     const selected = false;
     const visible = false;
 
@@ -319,9 +320,9 @@ type NewNodeOptions = {
     nRndLink?: number;
 };
 
-type PartialNode = Partial<Node<NodeType>>;
+type PartialNode = Partial<Node>;
 
-function newNode(props: PartialNode, options?: NewNodeOptions): Node<NodeType> {
+function newNode(props: PartialNode, options?: NewNodeOptions): Node {
     const partialNode = {
         ..._newNodeDefaults(),
         ...props,
@@ -391,7 +392,7 @@ type Edge = {
     level: number;
 };
 
-const linksToEdges = ({ id, links }: Pick<Node<NodeType>, "id" | "links">) => {
+const linksToEdges = ({ id, links }: Pick<Node, "id" | "links">) => {
     const ad = links.filter((link) => link.direction === "ad");
     const ab = links.filter((link) => link.direction === "ab");
 

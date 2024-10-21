@@ -2,9 +2,9 @@ import { createSignal } from "solid-js";
 
 import { setNodes } from "~/store";
 
-import { Nbr } from "./nbr";
+import { Tile } from "./Tile";
 
-function Sec(props: Nbr) {
+function Sec(props: Tile) {
     // https://yuku.takahashi.coffee/textcomplete/
     const [content, setContent] = createSignal(props.data() || "");
     const placeholder = "A new idea...";

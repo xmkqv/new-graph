@@ -14,7 +14,7 @@ import type { Modifier } from "~/store";
 import { nodes } from "~/store";
 import { rectToStyle } from "~/utils/rect";
 
-import { getNbr, Nbr } from "./tree/tile/nbr";
+import { getTile, type Tile } from "./tree/tile/Tile";
 import TreeElement, { TreeProps } from "./tree/Tree";
 
 type Directive<T> = (el: HTMLElement, accessor: Accessor<T>) => void;
@@ -25,7 +25,7 @@ type FluxProps = TreeProps & {
 };
 
 interface Flux {
-    id: string;
+    nexusId: string;
     nodeIds: string[];
     selectedIds: string[];
     selectedId: string;
@@ -37,16 +37,18 @@ function FluxElement(props: FluxProps) {
     const { nodeId } = props.query;
 
     const [flux, setFlux] = createStore<Flux>({
-        id: nodeId,
+        nexusId: nodeId,
         nodeIds: [],
         selectedIds: [],
         selectedId: nodeId,
         nNode: 0,
     });
 
-    createEffect(() => setFlux("selectedId", flux.selectedIds[0] || flux.id));
+    createEffect(() =>
+        setFlux("selectedId", flux.selectedIds[0] || flux.nexusId)
+    );
 
-    const node = getNbr(props);
+    const node = getTile(props);
 
     const [ref, setRef] = createSignal<HTMLElement | undefined>(undefined);
 
@@ -135,7 +137,7 @@ function ChatElement(props: ChatProps) {
     return (
         <FluxElement
             query={{
-                nodeId: qx.flux.id,
+                nodeId: qx.flux.nexusId,
                 depth: 1,
                 modifier: chatModifier,
                 linkTypes: ["memos"],
@@ -159,7 +161,7 @@ function ChatElement(props: ChatProps) {
 type QxContext = {
     flux: Flux;
     setFlux: SetStoreFunction<Flux>;
-    node: Nbr;
+    node: Tile;
     sendMemo?: (element: HTMLElement, memo: any) => void;
 };
 

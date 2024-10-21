@@ -11,6 +11,7 @@
     "@hey-api/client-axios": "^0.2.9",
     "@hey-api/client-fetch": "^0.4.2",
     "@hey-api/openapi-ts": "^0.53.11",
+    "@solid-primitives/scheduled": "^1.4.3",
     "@solidjs/router": "^0.14.10",
     "@solidjs/start": "^1.0.9",
     "@types/eslint__js": "^8.42.3",

@@ -6,8 +6,7 @@ import { backupModifier } from "~/store";
 import { Rect } from "~/utils/rect";
 
 import FluxElement, { ChatElement, useQx } from "../Flux";
-import { getNbr, Nbr } from "./tile/nbr";
-import TileElement from "./tile/Tile";
+import TileElement, { getTile, Tile } from "./tile/Tile";
 
 type TreeOptions = {
     fork?: { scope: "flux" | "global" };
@@ -17,7 +16,7 @@ type TreeOptions = {
 type TreeProps = {
     query: Query;
     options?: TreeOptions;
-    prev?: Nbr;
+    prev?: Tile;
 };
 
 function TreeElement(props: TreeProps) {
@@ -31,7 +30,7 @@ function TreeElement(props: TreeProps) {
             </FluxElement>
         );
 
-    const branch = getNbr(props);
+    const branch = getTile(props);
 
     if (qx.flux.nodeIds.includes(branch.id)) return;
     else qx.setFlux("nodeIds", qx.flux.nodeIds.length, branch.id);
